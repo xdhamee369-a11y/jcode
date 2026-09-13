@@ -1,445 +1,389 @@
-# Jcode Android Termux
+# Jcode on Android — Termux
 
-> Run **Jcode** on Android through Termux using a native ARM64 environment — without proot, Docker, Ubuntu, or a Linux container.
+Run **Jcode** directly on an Android phone using **Termux**.
 
-<p align="center">
-  <strong>Jcode + Termux + Android ARM64</strong>
-</p>
+Jcode is a terminal coding agent that supports multiple AI providers, direct APIs, OAuth authentication, OpenRouter, and OpenAI-compatible endpoints.
 
-<p align="center">
-  Tested on OnePlus 10R / Android 15 / ARM64
-</p>
+> Tested setup: Android + ARM64 / aarch64 + Termux from F-Droid.
 
 ---
 
-## Overview
+## Features
 
-This repository documents a reliable way to install and use **Jcode** on Android with Termux.
-
-Jcode is an AI coding-agent harness that can connect to multiple AI providers, including direct APIs and OpenAI-compatible gateways.
-
-Official Jcode documentation:
-
-https://jcode.sh/docs
-
-Official Jcode repository:
-
-https://github.com/1jehuang/jcode
-
-This guide focuses on:
-
-* Android ARM64
-* Termux
-* Termux glibc
-* Jcode
-* Google Gemini API
-* OpenRouter
-* OpenCode
-* OpenAI-compatible APIs
-* OmniRoute
-* Git repositories
-* `AGENTS.md`
-* API-key security
-* Troubleshooting
+- Run Jcode directly on Android
+- ARM64 / aarch64 support
+- Termux support
+- Interactive Jcode TUI
+- Direct API providers
+- Google Gemini
+- OpenRouter
+- OpenAI / ChatGPT
+- Claude
+- GitHub Copilot
+- OpenAI-compatible APIs
+- Local OpenAI-compatible servers
+- Custom provider profiles
+- No PC required
 
 ---
 
-# Tested Environment
+## Requirements
 
-| Component    | Tested           |
-| ------------ | ---------------- |
-| Device       | OnePlus 10R      |
-| Android      | Android 15       |
-| CPU          | ARM64            |
-| Architecture | `aarch64`        |
-| Termux       | F-Droid          |
-| Termux       | `0.119.0-beta.3` |
-| Jcode        | `v0.84.0`        |
-| glibc        | `2.44`           |
-| patchelf     | `0.19.1`         |
-
-Your versions may differ.
-
-The important architecture requirement is:
-
-```text
-aarch64
-```
-
----
-
-# Architecture
-
-The intended setup is:
-
-```text
-Android
-   │
-   ▼
-OnePlus 10R
-   │
-   ▼
-Termux
-   │
-   ▼
-Termux glibc
-   │
-   ├── glibc
-   └── patchelf
-   │
-   ▼
-Jcode
-   │
-   ├── Google Gemini API
-   ├── OpenRouter
-   ├── OpenCode-compatible services
-   ├── OmniRoute
-   └── Other OpenAI-compatible APIs
-```
-
----
-
-# Why glibc Is Required
-
-Android normally uses **Bionic libc**.
-
-The Jcode Linux ARM64 release expects a glibc-compatible runtime when running through Termux.
-
-Jcode's official Termux instructions therefore require:
-
-```bash
-pkg install glibc patchelf
-```
-
-before running the Jcode installer.
-
-This order matters.
-
-If Jcode is installed first and glibc/patchelf are added later, you can encounter:
-
-```text
-cannot execute: required file not found
-```
-
-even though the Jcode launcher itself exists.
-
----
-
-# Requirements
-
-Recommended:
-
-* 64-bit ARM Android device
-* 4 GB RAM or more
-* 1 GB+ free storage
-* Internet connection
-* Maintained Termux installation
+| Requirement | Recommended |
+|---|---|
+| Android | Android 10+ |
+| CPU | ARM64 / aarch64 |
+| Terminal | Termux |
+| Termux source | F-Droid |
+| Internet | Required |
+| Storage | At least 1 GB free |
 
 ---
 
 # 1. Install Termux
 
-Use a maintained Termux distribution.
+Install Termux from F-Droid:
 
-F-Droid:
-
+**Termux:**  
 https://f-droid.org/packages/com.termux/
 
-Do not mix Termux applications and repositories from unrelated sources.
+> Do not mix the F-Droid and Google Play Termux installations.
+
+Open Termux after installation.
 
 ---
 
-# 2. Check Architecture
-
-Open Termux.
-
-Run:
+# 2. Update Termux
 
 ```bash
-uname -m
-```
-
-Expected:
-
-```text
-aarch64
-```
-
-Also run:
-
-```bash
-termux-info
-```
-
-Look for:
-
-```text
-Packages CPU architecture:
-aarch64
-```
-
-If you do not get `aarch64`, stop and verify your device architecture.
+pkg update && pkg upgrade -y
+````
 
 ---
 
-# 3. Update Termux
+# 3. Install Jcode Dependencies
 
-Run:
+Jcode's Linux ARM64 binary requires the Termux `glibc` runtime.
 
-```bash
-pkg update
-```
-
-Then:
-
-```bash
-pkg upgrade -y
-```
-
----
-
-# 4. Enable the glibc Repository
-
-If this works:
-
-```bash
-pkg install glibc
-```
-
-you can continue.
-
-If you receive:
-
-```text
-E: Unable to locate package glibc
-```
-
-install the glibc repository:
+Install the glibc repository:
 
 ```bash
 pkg install glibc-repo -y
 ```
 
-Then update:
+Install the required packages:
 
 ```bash
-pkg update
+pkg install glibc patchelf curl -y
 ```
 
 ---
 
-# 5. Install Jcode Dependencies
+# 4. Install Jcode
 
-Run:
-
-```bash
-pkg install glibc patchelf curl git -y
-```
-
-Verify:
-
-```bash
-glibc --version
-```
-
-```bash
-patchelf --version
-```
-
-```bash
-curl --version
-```
-
-All three commands should work.
-
----
-
-# 6. Install Jcode
-
-Use the official Jcode installer:
+Install Jcode using the official installer:
 
 ```bash
 curl -fsSL https://jcode.sh/install | bash
 ```
 
-Official installation documentation:
-
-https://jcode.sh/docs
-
----
-
-# 7. Fix PATH
-
-Jcode normally installs its launcher under:
-
-```text
-~/.local/bin/jcode
-```
-
-For the current Termux session:
+If `jcode` is not immediately available, add Jcode's local binary directory:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-Refresh the shell cache:
-
-```bash
-hash -r
-```
-
-Check:
-
-```bash
-which jcode
-```
-
-Expected:
-
-```text
-/data/data/com.termux/files/home/.local/bin/jcode
-```
-
----
-
-# 8. Verify Jcode
-
-Run:
+Verify the installation:
 
 ```bash
 jcode --version
 ```
 
-Then:
+---
+
+# 5. Start Jcode
+
+Launch the Jcode TUI:
 
 ```bash
 jcode
 ```
 
-If the Jcode TUI appears, the installation is working.
+The interactive Jcode terminal interface should open.
 
 ---
 
-# 9. First-Run Credential Import
+# 6. Connect an AI Provider
 
-Jcode may detect existing OpenCode credentials such as:
-
-```text
-~/.local/share/opencode/auth.json
-```
-
-If you want Jcode to use them, approve the source.
-
-If you want a clean Jcode setup and want to configure your own API:
-
-```text
-/cancel
-```
-
-or skip the credential import according to the prompt.
-
-Do not approve credentials simply because they were detected.
-
----
-
-# 10. Provider Login
-
-From Termux:
-
-```bash
-jcode login
-```
-
-Or inside Jcode:
+Inside Jcode, open the provider login menu:
 
 ```text
 /login
 ```
 
-Jcode provides different provider options depending on the installed release.
+Jcode will display the available authentication methods.
 
-Common categories include:
+You can also start provider authentication from the shell:
 
-* Google Gemini
-* OpenAI
-* Anthropic
-* OpenRouter
-* OpenCode Zen
-* GitHub Copilot
-* Azure OpenAI
-* OpenAI-compatible APIs
+```bash
+jcode login
+```
+
+Choose the provider you want to use.
 
 ---
 
-# Google Gemini API
+# Google Gemini
 
-## 11. Create a Gemini API Key
+Google Gemini can be used directly with a Gemini API key.
 
-Official Google AI Studio API-key page:
+## Get a Gemini API Key
 
-https://aistudio.google.com/app/apikey
+Open Google AI Studio:
+
+[https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
 
 Official Gemini API documentation:
 
-https://ai.google.dev/gemini-api/docs
+[https://ai.google.dev/gemini-api/docs](https://ai.google.dev/gemini-api/docs)
 
-Google states that a Gemini API key is required to authenticate Gemini API requests.
+Create an API key in Google AI Studio.
+
+Then open Jcode:
+
+```bash
+jcode
+```
+
+Inside Jcode:
+
+```text
+/login
+```
+
+Select **Gemini API** when available and complete the authentication setup.
+
+For applications using Google's Gemini API, the documented environment variable is:
+
+```bash
+export GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+```
+
+> Never commit a real API key to GitHub.
 
 ---
 
-## 12. Create the Key
+# OpenRouter
 
-Open:
+[OpenRouter](https://openrouter.ai/) provides access to many AI models through a unified API.
 
-https://aistudio.google.com/app/apikey
+## Get an OpenRouter API Key
 
-Then:
+OpenRouter:
 
-1. Sign in with Google.
-2. Open the API Keys page.
-3. Create an API key.
-4. Copy the key.
-5. Keep it private.
+[https://openrouter.ai/](https://openrouter.ai/)
 
-Google currently uses authorization keys for newly created AI Studio keys and recommends securing/restricting keys.
+API keys:
+
+[https://openrouter.ai/settings/keys](https://openrouter.ai/settings/keys)
+
+Jcode provides an OpenRouter provider profile.
+
+Authenticate with:
+
+```bash
+jcode login --provider openrouter
+```
+
+Or from the Jcode TUI:
+
+```text
+/login
+```
+
+After authentication, use:
+
+```text
+/model
+```
+
+to choose a model.
+
+OpenRouter is useful when you want access to multiple model providers without creating a separate integration for every provider.
 
 ---
 
-## 13. Gemini API Key Security
+# OpenCode
 
-Never put the real key in this repository.
+[OpenCode](https://opencode.ai/) is a separate terminal coding agent and AI provider ecosystem.
+
+OpenCode is **not required** to run Jcode.
+
+You can install and use Jcode independently.
+
+## OpenCode Resources
+
+Website:
+
+[https://opencode.ai/](https://opencode.ai/)
+
+GitHub:
+
+[https://github.com/anomalyco/opencode](https://github.com/anomalyco/opencode)
+
+If OpenCode is already installed, Jcode may detect supported credentials from recognized OpenCode credential files.
+
+Jcode and OpenCode remain separate applications with separate configuration.
+
+Jcode configuration:
+
+```text
+~/.jcode/
+```
+
+OpenCode credentials:
+
+```text
+~/.local/share/opencode/auth.json
+```
+
+If Jcode asks whether you want to import OpenCode credentials and you want to configure Jcode independently, cancel the import and use:
+
+```text
+/login
+```
+
+---
+
+# Custom OpenAI-Compatible API
+
+Jcode can connect to compatible API endpoints such as:
+
+* OpenRouter
+* OmniRoute
+* Local AI servers
+* Self-hosted gateways
+* Cloud AI gateways
+* Other OpenAI-compatible services
+
+Create a custom provider:
+
+```bash
+printf '%s' "$MY_API_KEY" | jcode provider add my-api \
+  --base-url https://example.com/v1 \
+  --model your-model-id \
+  --api-key-stdin \
+  --set-default
+```
+
+Replace:
+
+```text
+https://example.com/v1
+```
+
+with the actual API base URL.
+
+Replace:
+
+```text
+your-model-id
+```
+
+with the model ID supplied by the API provider.
+
+Test the provider:
+
+```bash
+jcode --provider-profile my-api auth-test
+```
+
+Run a prompt:
+
+```bash
+jcode --provider-profile my-api run "Hello"
+```
+
+---
+
+# OmniRoute
+
+OmniRoute is an AI gateway/router rather than an AI model.
+
+It can expose an OpenAI-compatible API and route requests to supported AI providers.
+
+A local OmniRoute installation may use:
+
+```text
+http://127.0.0.1:20128/v1
+```
+
+> Only use this endpoint when OmniRoute is actually running locally on your device.
+
+Configure Jcode as an OpenAI-compatible provider:
+
+```bash
+printf '%s' "$OMNIROUTE_API_KEY" | jcode provider add omniroute \
+  --base-url http://127.0.0.1:20128/v1 \
+  --model YOUR_MODEL_ID \
+  --api-key-stdin \
+  --set-default
+```
+
+Test it:
+
+```bash
+jcode --provider-profile omniroute auth-test
+```
+
+---
+
+# Choosing a Provider
+
+## Simplest Setup
+
+Use a direct provider:
+
+```text
+Google Gemini
+OpenAI
+Claude
+```
+
+## Multiple Models
 
 Use:
 
 ```text
-YOUR_GEMINI_API_KEY
+OpenRouter
 ```
 
-as the documentation placeholder.
+## Multi-Provider Routing
 
-Never commit:
+Use:
 
 ```text
-AIza...
+OmniRoute
 ```
 
-or any other real API credential.
+## Local Models
 
-Do not publish API keys in:
+Use:
 
-* GitHub
-* README files
-* screenshots
-* `.env` files
-* shell scripts
-* Git commits
-* issue reports
+```text
+Ollama
+LM Studio
+```
 
-If a key is accidentally published, revoke/rotate it immediately.
+## Existing OpenCode Setup
+
+OpenCode can remain installed separately.
+
+Jcode does not require OpenCode.
 
 ---
 
-# 14. Configure Gemini in Jcode
+# Jcode Commands
 
 Start Jcode:
 
@@ -447,551 +391,39 @@ Start Jcode:
 jcode
 ```
 
-Inside the TUI:
-
-```text
-/login
-```
-
-Select the Gemini API provider.
-
-Paste your Google AI Studio API key when Jcode asks for it.
-
-Then select a currently available Gemini model:
-
-```text
-/model
-```
-
-Do not hard-code an obsolete Gemini model name into this repository. Model availability changes over time.
-
----
-
-# 15. Gemini Environment Variable
-
-For a temporary shell session, Gemini's documented environment variable is:
+Run a single prompt:
 
 ```bash
-export GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+jcode run "Explain this project"
 ```
 
-Google documents `GEMINI_API_KEY` as the standard environment variable for Gemini API authentication.
-
-Then:
-
-```bash
-jcode
-```
-
-For persistent use, prefer Jcode's provider credential storage instead of putting secrets directly into `.bashrc`.
-
----
-
-# 16. Gemini Test
-
-After configuring Gemini, run a simple request through Jcode:
-
-```bash
-jcode run "Reply exactly: GEMINI_JCODE_OK"
-```
-
-Expected:
-
-```text
-GEMINI_JCODE_OK
-```
-
-If it fails, check provider authentication:
-
-```bash
-jcode auth-test --all-configured
-```
-
----
-
-# OpenRouter
-
-## 17. What Is OpenRouter?
-
-OpenRouter is a model gateway that provides access to models from multiple providers through a unified API.
-
-This is useful when you want:
-
-```text
-Jcode
-  ↓
-OpenRouter
-  ↓
-Multiple models/providers
-```
-
-OpenCode also officially supports OpenRouter. Its current documentation describes connecting an OpenRouter account and selecting models through `/models`.
-
----
-
-## 18. OpenRouter API Key
-
-Official OpenRouter website:
-
-https://openrouter.ai/
-
-API keys:
-
-https://openrouter.ai/settings/keys
-
-Create an API key and keep it private.
-
-Do not put the key in GitHub.
-
----
-
-## 19. Configure OpenRouter in Jcode
-
-Inside Jcode:
-
-```text
-/login
-```
-
-Select:
-
-```text
-OpenRouter
-```
-
-Enter your OpenRouter API key.
-
-Then:
-
-```text
-/model
-```
-
-Choose a model available through your OpenRouter account.
-
----
-
-# OpenCode
-
-## 20. What Is OpenCode?
-
-OpenCode is another AI coding-agent terminal application.
-
-Official website:
-
-https://opencode.ai/
-
-Official documentation:
-
-https://opencode.ai/docs
-
-OpenCode supports many LLM providers and uses `/connect` followed by `/models` for provider setup and model selection.
-
----
-
-## 21. OpenCode and Jcode Are Separate
-
-Do not confuse:
-
-```text
-Jcode
-```
-
-with:
-
-```text
-OpenCode
-```
-
-They are separate coding-agent applications.
-
-This repository is primarily for:
-
-```text
-Jcode + Termux + Android
-```
-
-OpenCode is included here as an optional alternative/integration reference.
-
----
-
-## 22. OpenCode Providers
-
-OpenCode supports many providers and also supports custom OpenAI-compatible providers.
-
-OpenCode's standard provider flow is:
-
-```text
-/connect
-```
-
-then:
-
-```text
-/models
-```
-
-For OpenRouter, OpenCode documents connecting the OpenRouter account and selecting a model afterward.
-
----
-
-# OpenAI-Compatible APIs
-
-## 23. What Does OpenAI-Compatible Mean?
-
-An OpenAI-compatible API exposes an API format similar to OpenAI's API.
-
-This allows Jcode to connect to:
-
-* AI gateways
-* Local model servers
-* Self-hosted inference
-* OmniRoute
-* OpenRouter-compatible endpoints
-* Other compatible services
-
-Conceptually:
-
-```text
-Jcode
-  ↓
-OpenAI-compatible API
-  ↓
-Model provider
-```
-
----
-
-# OmniRoute
-
-## 24. OmniRoute Architecture
-
-OmniRoute can act as a routing/gateway layer:
-
-```text
-Jcode
-  ↓
-OmniRoute
-  ├── OpenAI
-  ├── Anthropic
-  ├── Gemini
-  ├── DeepSeek
-  ├── Kimi
-  └── Other configured providers
-```
-
-Use OmniRoute only after your direct provider configuration works.
-
-This makes troubleshooting much easier.
-
----
-
-## 25. Local OmniRoute
-
-If OmniRoute is running locally on your Android device and exposes:
-
-```text
-http://127.0.0.1:20128/v1
-```
-
-then the endpoint can be used as an OpenAI-compatible base URL.
-
-Do not use this URL unless OmniRoute is actually running on the phone at that address.
-
-Example:
-
-```bash
-printf '%s' "$OMNIROUTE_API_KEY" | jcode provider add omniroute \
-  --base-url "http://127.0.0.1:20128/v1" \
-  --model "YOUR_MODEL_ID" \
-  --api-key-stdin \
-  --set-default
-```
-
----
-
-# 26. Remote OmniRoute
-
-For a remote OmniRoute server:
-
-```bash
-printf '%s' "$OMNIROUTE_API_KEY" | jcode provider add omniroute \
-  --base-url "https://YOUR-OMNIROUTE-DOMAIN/v1" \
-  --model "YOUR_MODEL_ID" \
-  --api-key-stdin \
-  --set-default
-```
-
-Replace:
-
-```text
-YOUR-OMNIROUTE-DOMAIN
-```
-
-with your actual server.
-
-Replace:
-
-```text
-YOUR_MODEL_ID
-```
-
-with a model exposed by OmniRoute.
-
----
-
-# 27. OpenAI-Compatible Provider
-
-Generic example:
-
-```bash
-printf '%s' "$MY_API_KEY" | jcode provider add my-api \
-  --base-url "https://example.com/v1" \
-  --model "YOUR_MODEL_ID" \
-  --api-key-stdin \
-  --set-default
-```
-
-The `--api-key-stdin` approach avoids putting the secret directly into the command line.
-
----
-
-# Provider Strategy
-
-## Recommended Order
-
-For a new Jcode installation:
-
-```text
-1. Jcode
-      ↓
-2. Direct Gemini API
-      ↓
-3. Test
-      ↓
-4. OpenRouter
-      ↓
-5. OmniRoute / other gateway
-```
-
-Do not configure five providers simultaneously.
-
-First establish one known-good provider.
-
----
-
-# 28. Recommended Setup
-
-A practical configuration:
-
-```text
-PRIMARY
-Google Gemini API
-        ↓
-       Jcode
-```
-
-Optional:
-
-```text
-SECONDARY
-OpenRouter
-        ↓
-Multiple models
-        ↓
-       Jcode
-```
-
-Advanced:
-
-```text
-Jcode
-  ↓
-OmniRoute
-  ↓
-Multiple providers
-```
-
-This gives you a simple baseline before adding routing complexity.
-
----
-
-# 29. Git Setup
-
-Install Git:
-
-```bash
-pkg install git -y
-```
-
-Create a workspace:
-
-```bash
-mkdir -p ~/projects
-cd ~/projects
-```
-
-Clone a project:
-
-```bash
-git clone YOUR_REPOSITORY_URL
-```
-
-Enter it:
-
-```bash
-cd YOUR_REPOSITORY
-```
-
-Launch Jcode:
-
-```bash
-jcode
-```
-
----
-
-# 30. AGENTS.md
-
-Create:
-
-```bash
-nano AGENTS.md
-```
-
-Recommended:
-
-```markdown
-# Project Instructions
-
-## General
-
-- Inspect the repository before changing code.
-- Do not delete files without explaining why.
-- Do not modify unrelated files.
-- Keep changes minimal.
-- Run relevant tests after modifications.
-
-## Security
-
-- Never expose API keys.
-- Never commit credentials.
-- Never print secrets into logs.
-- Never commit `.env` files.
-
-## Android / Termux
-
-This project may be developed on Android using Termux.
-
-Do not assume:
-
-- sudo
-- systemd
-- Docker
-- Ubuntu
-- x86_64
-- standard Linux filesystem paths
-```
-
----
-
-# 31. Android Storage
-
-If you need shared Android storage:
-
-```bash
-termux-setup-storage
-```
-
-Grant the Android permission.
-
-Then:
-
-```bash
-ls ~/storage/shared
-```
-
-For development, prefer:
-
-```text
-~/projects/
-```
-
-for Git repositories rather than active repositories in shared storage.
-
----
-
-# 32. Prevent Termux From Being Killed
-
-Run:
-
-```bash
-termux-wake-lock
-```
-
-Also configure Android battery settings.
-
-On OnePlus/OxygenOS, use settings similar to:
-
-```text
-Settings
-→ Apps
-→ Termux
-→ Battery
-→ Unrestricted
-```
-
-Exact menu names can differ.
-
----
-
-# 33. Useful Commands
-
-Architecture:
-
-```bash
-uname -m
-```
-
-Termux information:
-
-```bash
-termux-info
-```
-
-Jcode location:
-
-```bash
-which jcode
-```
-
-Jcode version:
-
-```bash
-jcode --version
-```
-
-Start:
-
-```bash
-jcode
-```
-
-Login:
+Authenticate:
 
 ```bash
 jcode login
 ```
 
-Provider diagnostics:
+Test configured providers:
 
 ```bash
 jcode auth-test --all-configured
 ```
 
+Manage providers:
+
+```bash
+jcode provider
+```
+
+Resume a previous session:
+
+```bash
+jcode --resume SESSION_NAME
+```
+
 ---
 
-# 34. Useful Jcode TUI Commands
+# Useful Jcode TUI Commands
 
 Inside Jcode:
 
@@ -999,139 +431,176 @@ Inside Jcode:
 /login
 ```
 
-Provider authentication.
+Configure authentication.
 
 ```text
 /model
 ```
 
-Model selection.
+Choose a model.
 
 ```text
-/help
+/account
 ```
 
-Available commands.
+Manage or switch accounts.
 
 ```text
 /config
 ```
 
-Configuration.
+Open configuration.
 
 ```text
 /usage
 ```
 
-Usage information.
+View usage information.
 
 ```text
-/quit
+/help
 ```
 
-Exit.
-
-The exact command set can change between releases.
+Show available commands.
 
 ---
 
-# 35. PATH Problem
+# Project Configuration
 
-If:
+Jcode configuration is stored under:
 
 ```text
-jcode: command not found
+~/.jcode/
 ```
 
-run:
+The main configuration file is:
+
+```text
+~/.jcode/config.toml
+```
+
+Project-level agent instructions can be placed in:
+
+```text
+AGENTS.md
+```
+
+Example:
+
+```text
+my-project/
+├── AGENTS.md
+├── src/
+└── README.md
+```
+
+Jcode can use `AGENTS.md` instructions when working inside the project.
+
+---
+
+# API Key Security
+
+Never put a real API key in:
+
+* `README.md`
+* GitHub issues
+* Git commits
+* Screenshots
+* Public configuration files
+* Public source code
+
+Use placeholders in documentation:
+
+```text
+YOUR_API_KEY
+```
+
+Example:
+
+```bash
+export GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+```
+
+Never publish a real credential such as:
+
+```text
+sk-xxxxxxxxxxxxxxxx
+```
+
+If an API key is accidentally exposed, revoke it immediately and create a new key.
+
+---
+
+# Recommended Installation
+
+For a fresh Termux installation, the essential setup is:
+
+```bash
+pkg update && pkg upgrade -y
+pkg install glibc-repo -y
+pkg install glibc patchelf curl -y
+curl -fsSL https://jcode.sh/install | bash
+export PATH="$HOME/.local/bin:$PATH"
+jcode --version
+jcode
+```
+
+Then configure your preferred provider:
+
+```text
+/login
+```
+
+---
+
+# Troubleshooting
+
+## `glibc` Cannot Be Found
+
+Install the Termux glibc repository:
+
+```bash
+pkg install glibc-repo -y
+```
+
+Then install the required runtime:
+
+```bash
+pkg install glibc patchelf -y
+```
+
+---
+
+## `jcode: command not found`
+
+Add Jcode's local binary directory:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-Then:
+Then run:
 
 ```bash
-hash -r
-```
-
-Then:
-
-```bash
-which jcode
-```
-
-If that works, make it persistent:
-
-```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-```
-
-Reload:
-
-```bash
-source ~/.bashrc
+jcode --version
 ```
 
 ---
 
-# 36. `cannot execute: required file not found`
+## `required file not found`
 
-If Jcode reports:
+If Jcode was installed before `glibc` was available, the Jcode binary may fail to start.
 
-```text
-cannot execute: required file not found
-```
-
-check:
+Install the required runtime:
 
 ```bash
-glibc --version
+pkg install glibc patchelf -y
 ```
 
-```bash
-patchelf --version
-```
-
-```bash
-uname -m
-```
-
-Expected architecture:
-
-```text
-aarch64
-```
-
-If Jcode was installed before glibc and patchelf, reinstall Jcode.
-
----
-
-# 37. Clean Jcode Reinstall
-
-Run:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/1jehuang/jcode/master/scripts/uninstall.sh | bash -s -- --yes
-```
-
-Then:
-
-```bash
-rm -f "$HOME/.local/bin/jcode"
-```
-
-Then reinstall:
+Then reinstall Jcode:
 
 ```bash
 curl -fsSL https://jcode.sh/install | bash
-```
-
-Reload:
-
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-hash -r
 ```
 
 Verify:
@@ -1140,430 +609,159 @@ Verify:
 jcode --version
 ```
 
-Jcode's official uninstall script removes binaries while preserving configuration, authentication, and sessions.
-
 ---
 
-# 38. Dynamic Linker Diagnostics
+## Provider Authentication Fails
 
-If the error remains:
-
-```bash
-file "$HOME/.jcode/builds/stable/jcode"
-```
-
-Then:
-
-```bash
-patchelf --print-interpreter "$HOME/.jcode/builds/stable/jcode"
-```
-
-Check:
-
-```bash
-ls -l "$PREFIX/glibc/lib/ld-linux-aarch64.so.1"
-```
-
-Check:
-
-```bash
-ls -lh "$HOME/.jcode/builds/stable/jcode"
-```
-
-Finally:
-
-```bash
-uname -m
-```
-
-Do not randomly install additional libraries before checking these results.
-
----
-
-# 39. Mirror Problem
-
-If Termux reports:
+Open the login menu:
 
 ```text
-No mirror or mirror group selected.
+/login
 ```
 
-but then says the mirror is available and package installation succeeds, it is not necessarily an error.
+Select the correct provider and authenticate again.
 
-If package downloads actually fail:
-
-```bash
-termux-change-repo
-```
-
-Select a working repository.
-
-Then:
+To test configured providers:
 
 ```bash
-pkg update
+jcode auth-test --all-configured
 ```
 
 ---
 
-# 40. Security
+## OpenCode Credentials Appear During Setup
 
-Never commit:
+OpenCode credentials are optional.
+
+If you want a completely independent Jcode configuration, cancel the import:
 
 ```text
-Gemini API keys
-OpenRouter API keys
-OpenAI API keys
-Anthropic API keys
-OmniRoute API keys
-OAuth tokens
-auth.json
-.env
-private SSH keys
+/cancel
 ```
 
-Use placeholders:
+Then configure your own provider:
 
 ```text
-YOUR_GEMINI_API_KEY
-YOUR_OPENROUTER_API_KEY
-YOUR_OMNIROUTE_API_KEY
+/login
 ```
+
+There is no need to uninstall OpenCode.
 
 ---
 
-# 41. `.gitignore`
+# Updating Jcode
 
-Create:
-
-```bash
-nano .gitignore
-```
-
-Use:
-
-```gitignore
-.env
-.env.*
-*.key
-*.pem
-*credentials*
-*secret*
-
-auth.json
-*_auth.json
-*_oauth.json
-
-.jcode/
-.jcode-home/
-
-provider-*.env
-config.local.*
-
-*.log
-
-.vscode/
-.idea/
-.DS_Store
-
-storage/
-```
-
----
-
-# 42. Check Before Git Push
-
-Run:
+Run the official installer again:
 
 ```bash
-git status
-```
-
-Then:
-
-```bash
-git diff --cached
-```
-
-Search for obvious key strings:
-
-```bash
-grep -RniE 'AIza|sk-|api[_-]?key|token|secret' . \
-  --exclude-dir=.git \
-  --exclude=README.md
-```
-
-Review the result before pushing.
-
----
-
-# 43. Quick Installation
-
-For a fresh ARM64 Termux installation:
-
-```bash
-pkg update
-pkg upgrade -y
-pkg install glibc-repo -y
-pkg update
-pkg install glibc patchelf curl git -y
-termux-wake-lock
 curl -fsSL https://jcode.sh/install | bash
-export PATH="$HOME/.local/bin:$PATH"
-hash -r
+```
+
+Verify the installed version:
+
+```bash
 jcode --version
 ```
 
-Start:
+---
 
-```bash
-jcode
-```
+# Official Resources
 
-Then configure:
+## Jcode
+
+[https://jcode.sh/](https://jcode.sh/)
+
+## Jcode Documentation
+
+[https://jcode.sh/docs](https://jcode.sh/docs)
+
+## Jcode GitHub
+
+[https://github.com/1jehuang/jcode](https://github.com/1jehuang/jcode)
+
+## Termux
+
+[https://termux.dev/](https://termux.dev/)
+
+## Termux on F-Droid
+
+[https://f-droid.org/packages/com.termux/](https://f-droid.org/packages/com.termux/)
+
+## Google AI Studio
+
+[https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+
+## Google Gemini API
+
+[https://ai.google.dev/gemini-api/docs](https://ai.google.dev/gemini-api/docs)
+
+## OpenRouter
+
+[https://openrouter.ai/](https://openrouter.ai/)
+
+## OpenRouter API Keys
+
+[https://openrouter.ai/settings/keys](https://openrouter.ai/settings/keys)
+
+## OpenCode
+
+[https://opencode.ai/](https://opencode.ai/)
+
+## OpenCode GitHub
+
+[https://github.com/anomalyco/opencode](https://github.com/anomalyco/opencode)
+
+---
+
+# Android + Termux + Jcode
 
 ```text
-/login
+Android
+   │
+   ▼
+Termux
+   │
+   ├── glibc
+   ├── patchelf
+   └── curl
+        │
+        ▼
+      Jcode
+        │
+        ├── Google Gemini
+        ├── OpenAI
+        ├── Claude
+        ├── OpenRouter
+        ├── OmniRoute
+        ├── Ollama
+        ├── LM Studio
+        └── OpenAI-compatible APIs
 ```
 
 ---
 
-# 44. Gemini Quick Setup
-
-Create the key:
-
-https://aistudio.google.com/app/apikey
-
-Then configure Gemini in Jcode:
-
-```text
-jcode
-/login
-```
-
-Choose Gemini API.
-
-Enter the key.
-
-Then:
-
-```text
-/model
-```
-
-Select an available Gemini model.
-
-Test:
-
-```bash
-jcode run "Reply exactly: GEMINI_JCODE_OK"
-```
-
----
-
-# 45. OpenRouter Quick Setup
-
-Open:
-
-https://openrouter.ai/
-
-Create an API key:
-
-https://openrouter.ai/settings/keys
-
-Then:
-
-```text
-jcode
-/login
-```
-
-Choose:
-
-```text
-OpenRouter
-```
-
-Enter the API key.
-
-Then:
-
-```text
-/model
-```
-
-Select a model.
-
----
-
-# 46. OpenCode Quick Setup
-
-Official website:
-
-https://opencode.ai/
-
-Official documentation:
-
-https://opencode.ai/docs
-
-OpenCode's provider flow:
-
-```text
-/connect
-```
-
-Then:
-
-```text
-/models
-```
-
-OpenCode supports OpenRouter and custom OpenAI-compatible providers.
-
-Remember:
-
-```text
-Jcode != OpenCode
-```
-
-They are separate coding-agent applications.
-
----
-
-# 47. Troubleshooting Checklist
-
-Before asking for help, run:
-
-```bash
-uname -m
-termux-info
-which jcode
-jcode --version
-glibc --version
-patchelf --version
-```
-
-Provide the output but remove:
-
-```text
-API keys
-tokens
-passwords
-private keys
-auth.json
-```
-
----
-
-# 48. Recommended Architecture
-
-```text
-                    ANDROID
-                       │
-                       ▼
-                ┌─────────────┐
-                │   Termux    │
-                └──────┬──────┘
-                       │
-                       ▼
-              ┌─────────────────┐
-              │ glibc + patchelf│
-              └────────┬────────┘
-                       │
-                       ▼
-                ┌─────────────┐
-                │    Jcode    │
-                │     TUI     │
-                └──────┬──────┘
-                       │
-          ┌────────────┼────────────┐
-          │            │            │
-          ▼            ▼            ▼
-       Gemini      OpenRouter   OmniRoute
-          │            │            │
-          ▼            ▼            ▼
-       Google       Multiple     Multiple
-       Gemini       Models       Providers
-```
-
----
-
-# 49. Recommended Setup Order
-
-Do not configure everything at once.
-
-Use this order:
-
-```text
-1. Install Termux
-2. Verify aarch64
-3. Update Termux
-4. Enable glibc-repo
-5. Install glibc
-6. Install patchelf
-7. Install Jcode
-8. Verify Jcode
-9. Start Jcode TUI
-10. Skip unwanted credential imports
-11. Configure Gemini API
-12. Test Gemini
-13. Add OpenRouter if needed
-14. Add OmniRoute if needed
-15. Clone projects
-16. Add AGENTS.md
-17. Start development
-```
-
-This makes failures easy to isolate.
-
----
-
-# 50. Official Links
-
-### Jcode
-
-https://jcode.sh/
-
-https://jcode.sh/docs
-
-https://github.com/1jehuang/jcode
-
-### OpenCode
-
-https://opencode.ai/
-
-https://opencode.ai/docs
-
-### Google Gemini
-
-https://ai.google.dev/gemini-api/docs
-
-### Google AI Studio API Keys
-
-https://aistudio.google.com/app/apikey
-
-### OpenRouter
-
-https://openrouter.ai/
-
-### OpenRouter API Keys
-
-https://openrouter.ai/settings/keys
-
-### Termux
-
-https://termux.dev/
-
-### Termux on F-Droid
-
-https://f-droid.org/packages/com.termux/
+# Credits
+
+* Jcode
+* Termux
+* Google Gemini
+* OpenRouter
+* OpenCode
+* Open-source AI community
 
 ---
 
 # License
 
-This repository contains installation documentation and configuration examples.
+This README documents running Jcode on Android through Termux.
 
-Jcode, OpenCode, Termux, Google Gemini, and OpenRouter are separate projects/services maintained by their respective owners.
+For Jcode's software license, see the upstream repository:
 
-Always refer to their official documentation for current releases, provider requirements, pricing, limits, and security changes.
+[https://github.com/1jehuang/jcode](https://github.com/1jehuang/jcode)
+
+---
+
+**Jcode runs directly on Android through Termux — no PC required.**
+
+```
+```
