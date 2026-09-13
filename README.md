@@ -1,4 +1,11 @@
-# Jcode on Android — Termux
+# Jcode harness on Android — Termux
+<p align="center">
+  <img
+    src="https://raw.githubusercontent.com/github/explore/main/topics/android/android.png"
+    width="100"
+    alt="Android"
+  >
+</p>
 
 Run **Jcode** directly on an Android phone using **Termux**.
 
